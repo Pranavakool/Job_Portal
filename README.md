@@ -1,3 +1,5 @@
+
+
 # 💼 JobPortal — Full-Stack Job Recruitment Web Application
 
 [![Python](https://img.shields.io/badge/Python-3.10%2B-blue.svg)](https://www.python.org/)
