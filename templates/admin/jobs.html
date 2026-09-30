@@ -1,0 +1,186 @@
+{% extends "base.html" %}
+
+{% block title %}Job Listings Moderation | Admin Console{% endblock %}
+
+{% block content %}
+<div class="bg-dark text-white py-4 mb-4 border-bottom">
+  <div class="container">
+    <div class="d-flex flex-column flex-md-row justify-content-between align-items-md-center gap-3">
+      <div>
+        <h1 class="h3 fw-bold mb-1 text-white">All Platform Job Listings</h1>
+        <p class="text-secondary small mb-0">Monitor job postings, review compliance, and moderate inactive or inappropriate roles.</p>
+      </div>
+      <a href="{{ url_for('admin.dashboard') }}" class="btn btn-outline-light btn-sm">
+        <i class="bi bi-arrow-left me-1"></i> Dashboard
+      </a>
+    </div>
+  </div>
+</div>
+
+<div class="container pb-5">
+  <!-- Search & Filter Bar -->
+  <div class="card border-0 shadow-sm rounded-3 p-3 mb-4 bg-white">
+    <form method="GET" action="{{ url_for('admin.jobs') }}" class="row g-2 align-items-center">
+      <div class="col-md-5">
+        <div class="input-group input-group-sm">
+          <span class="input-group-text bg-light"><i class="bi bi-search"></i></span>
+          <input type="text" class="form-control" name="search" value="{{ search }}" placeholder="Search by title, company, or location...">
+        </div>
+      </div>
+
+      <div class="col-md-3">
+        <select class="form-select form-select-sm" name="category">
+          <option value="">All Categories</option>
+          {% for cat in categories %}
+            <option value="{{ cat }}" {% if category_filter == cat %}selected{% endif %}>{{ cat }}</option>
+          {% endfor %}
+        </select>
+      </div>
+
+      <div class="col-md-2">
+        <select class="form-select form-select-sm" name="status">
+          <option value="">All Statuses</option>
+          <option value="active" {% if status_filter == 'active' %}selected{% endif %}>Active</option>
+          <option value="inactive" {% if status_filter == 'inactive' %}selected{% endif %}>Inactive</option>
+        </select>
+      </div>
+
+      <div class="col-md-2 d-flex gap-1">
+        <button type="submit" class="btn btn-primary btn-sm flex-grow-1">Filter</button>
+        <a href="{{ url_for('admin.jobs') }}" class="btn btn-outline-secondary btn-sm" title="Clear Filters">
+          <i class="bi bi-arrow-counterclockwise"></i>
+        </a>
+      </div>
+    </form>
+  </div>
+
+  <!-- Jobs Table Card -->
+  <div class="card border-0 shadow-sm rounded-3 p-4 bg-white">
+    {% if jobs %}
+      <div class="table-responsive">
+        <table class="table table-hover align-middle mb-0">
+          <thead class="table-light small text-uppercase text-muted">
+            <tr>
+              <th>Job Title</th>
+              <th>Company & Employer</th>
+              <th>Location & Category</th>
+              <th>Status</th>
+              <th>Applications</th>
+              <th>Date Posted</th>
+              <th class="text-end">Actions</th>
+            </tr>
+          </thead>
+          <tbody>
+            {% for job in jobs %}
+              <tr>
+                <td>
+                  <a href="{{ url_for('jobs.job_detail', job_id=job.id) }}" class="fw-bold text-decoration-none text-dark d-block">
+                    {{ job.title }}
+                  </a>
+                  <span class="badge bg-light text-secondary border" style="font-size: 0.75rem;">{{ job.job_type }}</span>
+                </td>
+                <td>
+                  <div class="fw-semibold text-dark">{{ job.company }}</div>
+                  <div class="text-muted small">Employer: {{ job.employer.name }}</div>
+                </td>
+                <td>
+                  <div class="small text-dark">{{ job.location }}</div>
+                  <span class="badge bg-light text-dark border" style="font-size: 0.75rem;">{{ job.category }}</span>
+                </td>
+                <td>
+                  {% if job.is_active %}
+                    <span class="badge bg-success">Active</span>
+                  {% else %}
+                    <span class="badge bg-secondary">Inactive</span>
+                  {% endif %}
+                </td>
+                <td>
+                  <span class="badge bg-light text-primary border fs-6">{{ job.application_count }}</span>
+                </td>
+                <td class="small text-muted">{{ job.created_at.strftime('%b %d, %Y') }}</td>
+                <td class="text-end">
+                  <div class="d-inline-flex align-items-center gap-1">
+                    <!-- View Job -->
+                    <a href="{{ url_for('jobs.job_detail', job_id=job.id) }}" class="btn btn-sm btn-light border py-1" title="View Listing">
+                      <i class="bi bi-eye-fill text-info"></i>
+                    </a>
+
+                    <!-- Toggle Status -->
+                    <form action="{{ url_for('admin.toggle_job_status', job_id=job.id) }}" method="POST" class="d-inline">
+                      <button type="submit" class="btn btn-sm btn-light border py-1" title="{% if job.is_active %}Deactivate Job{% else %}Activate Job{% endif %}">
+                        <i class="bi {% if job.is_active %}bi-pause-fill text-warning{% else %}bi-play-fill text-success{% endif %}"></i>
+                      </button>
+                    </form>
+
+                    <!-- Delete Button with Modal -->
+                    <button type="button" class="btn btn-sm btn-light border py-1" data-bs-toggle="modal" data-bs-target="#deleteJobModal{{ job.id }}" title="Delete Job">
+                      <i class="bi bi-trash-fill text-danger"></i>
+                    </button>
+
+                    <!-- Delete Modal -->
+                    <div class="modal fade" id="deleteJobModal{{ job.id }}" tabindex="-1" aria-hidden="true">
+                      <div class="modal-dialog modal-dialog-centered">
+                        <div class="modal-content border-0 shadow">
+                          <div class="modal-header">
+                            <h5 class="modal-title fw-bold text-danger">
+                              <i class="bi bi-exclamation-triangle-fill me-2"></i>Delete Job Listing
+                            </h5>
+                            <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                          </div>
+                          <div class="modal-body text-start">
+                            Are you sure you want to remove <strong>"{{ job.title }}"</strong> posted by <strong>{{ job.company }}</strong>?
+                          </div>
+                          <div class="modal-footer">
+                            <button type="button" class="btn btn-sm btn-outline-secondary" data-bs-dismiss="modal">Cancel</button>
+                            <form action="{{ url_for('admin.delete_job', job_id=job.id) }}" method="POST">
+                              <button type="submit" class="btn btn-sm btn-danger px-3">Remove Listing</button>
+                            </form>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+
+                  </div>
+                </td>
+              </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+
+      <!-- Pagination -->
+      {% if pagination.pages > 1 %}
+        <nav aria-label="Jobs pagination" class="mt-4">
+          <ul class="pagination justify-content-center mb-0">
+            <li class="page-item {% if not pagination.has_prev %}disabled{% endif %}">
+              <a class="page-link" href="{{ url_for('admin.jobs', page=pagination.prev_num, search=search, category=category_filter, status=status_filter) }}">&laquo; Previous</a>
+            </li>
+            {% for p in pagination.iter_pages(left_edge=1, right_edge=1, left_current=2, right_current=2) %}
+              {% if p %}
+                <li class="page-item {% if p == pagination.page %}active{% endif %}">
+                  <a class="page-link" href="{{ url_for('admin.jobs', page=p, search=search, category=category_filter, status=status_filter) }}">{{ p }}</a>
+                </li>
+              {% else %}
+                <li class="page-item disabled"><span class="page-link">&hellip;</span></li>
+              {% endif %}
+            {% endfor %}
+            <li class="page-item {% if not pagination.has_next %}disabled{% endif %}">
+              <a class="page-link" href="{{ url_for('admin.jobs', page=pagination.next_num, search=search, category=category_filter, status=status_filter) }}">Next &raquo;</a>
+            </li>
+          </ul>
+        </nav>
+      {% endif %}
+
+    {% else %}
+      <div class="empty-state">
+        <div class="empty-state-icon text-muted">
+          <i class="bi bi-briefcase"></i>
+        </div>
+        <h5 class="fw-bold mb-2">No jobs found</h5>
+        <p class="text-muted small mb-3">No job listings match your current filters.</p>
+        <a href="{{ url_for('admin.jobs') }}" class="btn btn-outline-primary btn-sm">Clear Search</a>
+      </div>
+    {% endif %}
+  </div>
+</div>
+{% endblock %}

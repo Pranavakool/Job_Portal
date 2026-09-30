@@ -1,0 +1,96 @@
+{% extends "base.html" %}
+
+{% block title %}Sign In | JobPortal{% endblock %}
+
+{% block content %}
+<div class="container py-5">
+  <div class="row justify-content-center">
+    <div class="col-lg-5 col-md-8">
+      
+      <!-- Login Card -->
+      <div class="form-card shadow-lg p-4 p-md-5">
+        <div class="text-center mb-4">
+          <div class="brand-icon mx-auto mb-3" style="width: 48px; height: 48px; font-size: 1.5rem;">
+            <i class="bi bi-person-fill"></i>
+          </div>
+          <h3 class="fw-bold mb-1">Welcome Back</h3>
+          <p class="text-muted small">Sign in to your JobPortal account to continue</p>
+        </div>
+
+        <form method="POST" action="{{ url_for('auth.login', next=request.args.get('next')) }}">
+          <!-- Email Field -->
+          <div class="mb-3">
+            <label class="form-label" for="email">Email Address</label>
+            <div class="input-group">
+              <span class="input-group-text bg-light border-end-0"><i class="bi bi-envelope text-muted"></i></span>
+              <input type="email" class="form-control border-start-0" id="email" name="email" value="{{ email or '' }}" placeholder="name@company.com" required autofocus>
+            </div>
+          </div>
+
+          <!-- Password Field -->
+          <div class="mb-3">
+            <div class="d-flex justify-content-between align-items-center">
+              <label class="form-label" for="password">Password</label>
+            </div>
+            <div class="input-group">
+              <span class="input-group-text bg-light border-end-0"><i class="bi bi-lock text-muted"></i></span>
+              <input type="password" class="form-control border-start-0" id="password" name="password" placeholder="••••••••" required>
+            </div>
+          </div>
+
+          <!-- Remember Me Checkbox -->
+          <div class="mb-4 form-check">
+            <input type="checkbox" class="form-check-input" id="remember" name="remember">
+            <label class="form-check-label text-muted small" for="remember">Keep me logged in on this device</label>
+          </div>
+
+          <!-- Submit Button -->
+          <button type="submit" class="btn btn-primary w-100 py-2 fs-6 mb-3">
+            <i class="bi bi-box-arrow-in-right me-1"></i> Sign In to Account
+          </button>
+        </form>
+
+        <div class="text-center mt-3 pt-3 border-top">
+          <p class="text-muted small mb-0">
+            Don't have an account yet? 
+            <a href="{{ url_for('auth.register') }}" class="fw-semibold text-primary text-decoration-none">Create Free Account</a>
+          </p>
+        </div>
+      </div>
+
+      <!-- Quick Demo Credentials Box for Evaluation -->
+      <div class="card mt-4 border-0 shadow-sm bg-light">
+        <div class="card-body p-3 small">
+          <div class="d-flex align-items-center gap-2 mb-2 text-primary fw-bold">
+            <i class="bi bi-key-fill"></i> Quick Demo Accounts (Click to Fill)
+          </div>
+          <div class="d-grid gap-2">
+            <button type="button" class="btn btn-sm btn-outline-secondary text-start py-1 px-2 demo-fill-btn" data-email="admin@jobportal.com" data-password="Admin@123">
+              <span class="badge bg-danger me-1">Admin</span> <strong>admin@jobportal.com</strong> / Admin@123
+            </button>
+            <button type="button" class="btn btn-sm btn-outline-secondary text-start py-1 px-2 demo-fill-btn" data-email="techcorp@example.com" data-password="Employer@123">
+              <span class="badge bg-primary me-1">Employer</span> <strong>techcorp@example.com</strong> / Employer@123
+            </button>
+            <button type="button" class="btn btn-sm btn-outline-secondary text-start py-1 px-2 demo-fill-btn" data-email="rohit.sharma@example.com" data-password="Seeker@123">
+              <span class="badge bg-success me-1">Seeker</span> <strong>rohit.sharma@example.com</strong> / Seeker@123
+            </button>
+          </div>
+        </div>
+      </div>
+
+    </div>
+  </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+  // Fill credentials helper
+  document.querySelectorAll('.demo-fill-btn').forEach(function(btn) {
+    btn.addEventListener('click', function() {
+      document.getElementById('email').value = this.dataset.email;
+      document.getElementById('password').value = this.dataset.password;
+    });
+  });
+</script>
+{% endblock %}

@@ -1,0 +1,215 @@
+{% extends "base.html" %}
+
+{% block title %}Admin Console | JobPortal{% endblock %}
+
+{% block content %}
+<div class="bg-dark text-white py-4 mb-4 border-bottom">
+  <div class="container">
+    <div class="d-flex flex-column flex-md-row justify-content-between align-items-md-center gap-3">
+      <div>
+        <div class="d-flex align-items-center gap-2">
+          <span class="badge bg-danger">Superadmin</span>
+          <h1 class="h3 fw-bold mb-0 text-white">System Administration Console</h1>
+        </div>
+        <p class="text-secondary small mb-0 mt-1">Platform monitoring, user access control, and moderation tools.</p>
+      </div>
+      <div class="d-flex gap-2">
+        <a href="{{ url_for('admin.users') }}" class="btn btn-outline-light btn-sm">
+          <i class="bi bi-people me-1"></i> Users
+        </a>
+        <a href="{{ url_for('admin.jobs') }}" class="btn btn-outline-light btn-sm">
+          <i class="bi bi-briefcase me-1"></i> Jobs
+        </a>
+        <a href="{{ url_for('admin.applications') }}" class="btn btn-outline-light btn-sm">
+          <i class="bi bi-file-earmark-text me-1"></i> Applications
+        </a>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="container pb-5">
+  <!-- Analytics Metric Cards -->
+  <div class="row g-3 mb-4">
+    <div class="col-xl-3 col-sm-6">
+      <div class="metric-card border-primary border-opacity-25">
+        <div>
+          <span class="text-muted small fw-semibold text-uppercase">Total Users</span>
+          <h2 class="fw-bold mb-0 mt-1 text-primary">{{ stats.total_users }}</h2>
+          <span class="small text-muted">{{ stats.total_seekers }} Seekers &bull; {{ stats.total_employers }} Employers</span>
+        </div>
+        <div class="metric-icon bg-primary bg-opacity-10 text-primary">
+          <i class="bi bi-people-fill"></i>
+        </div>
+      </div>
+    </div>
+
+    <div class="col-xl-3 col-sm-6">
+      <div class="metric-card border-success border-opacity-25">
+        <div>
+          <span class="text-muted small fw-semibold text-uppercase">Total Jobs</span>
+          <h2 class="fw-bold mb-0 mt-1 text-success">{{ stats.total_jobs }}</h2>
+          <span class="small text-muted">{{ stats.active_jobs }} Active &bull; {{ stats.inactive_jobs }} Inactive</span>
+        </div>
+        <div class="metric-icon bg-success bg-opacity-10 text-success">
+          <i class="bi bi-briefcase-fill"></i>
+        </div>
+      </div>
+    </div>
+
+    <div class="col-xl-3 col-sm-6">
+      <div class="metric-card border-info border-opacity-25">
+        <div>
+          <span class="text-muted small fw-semibold text-uppercase">Total Applications</span>
+          <h2 class="fw-bold mb-0 mt-1 text-info">{{ stats.total_applications }}</h2>
+          <span class="small text-muted">Across all job postings</span>
+        </div>
+        <div class="metric-icon bg-info bg-opacity-10 text-info">
+          <i class="bi bi-send-check-fill"></i>
+        </div>
+      </div>
+    </div>
+
+    <div class="col-xl-3 col-sm-6">
+      <div class="metric-card border-warning border-opacity-25">
+        <div>
+          <span class="text-muted small fw-semibold text-uppercase">System Status</span>
+          <h4 class="fw-bold mb-0 mt-1 text-success"><i class="bi bi-check-circle me-1"></i>Healthy</h4>
+          <span class="small text-muted">SQLite &bull; Flask 3.1 &bull; Auth Active</span>
+        </div>
+        <div class="metric-icon bg-success bg-opacity-10 text-success">
+          <i class="bi bi-cpu-fill"></i>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Applications Status Breakdown -->
+  <div class="card border-0 shadow-sm rounded-3 p-4 bg-white mb-4">
+    <h5 class="fw-bold mb-3 pb-2 border-bottom">Application Pipeline Distribution</h5>
+    <div class="row g-2 text-center">
+      <div class="col">
+        <div class="p-3 bg-light rounded">
+          <span class="text-muted small d-block">Applied</span>
+          <h4 class="fw-bold text-primary mb-0">{{ stats.status_counts.get('Applied', 0) }}</h4>
+        </div>
+      </div>
+      <div class="col">
+        <div class="p-3 bg-light rounded">
+          <span class="text-muted small d-block">Under Review</span>
+          <h4 class="fw-bold text-info mb-0">{{ stats.status_counts.get('Under Review', 0) }}</h4>
+        </div>
+      </div>
+      <div class="col">
+        <div class="p-3 bg-light rounded">
+          <span class="text-muted small d-block">Shortlisted</span>
+          <h4 class="fw-bold text-warning mb-0">{{ stats.status_counts.get('Shortlisted', 0) }}</h4>
+        </div>
+      </div>
+      <div class="col">
+        <div class="p-3 bg-light rounded">
+          <span class="text-muted small d-block">Hired</span>
+          <h4 class="fw-bold text-success mb-0">{{ stats.status_counts.get('Hired', 0) }}</h4>
+        </div>
+      </div>
+      <div class="col">
+        <div class="p-3 bg-light rounded">
+          <span class="text-muted small d-block">Rejected</span>
+          <h4 class="fw-bold text-danger mb-0">{{ stats.status_counts.get('Rejected', 0) }}</h4>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Recent Platform Activity Row -->
+  <div class="row g-4">
+    <!-- Recent Users -->
+    <div class="col-lg-6">
+      <div class="card border-0 shadow-sm rounded-3 p-4 bg-white h-100">
+        <div class="d-flex justify-content-between align-items-center mb-3 pb-2 border-bottom">
+          <h5 class="fw-bold mb-0">Recently Registered Users</h5>
+          <a href="{{ url_for('admin.users') }}" class="btn btn-sm btn-outline-primary">Manage Users</a>
+        </div>
+        <div class="table-responsive">
+          <table class="table table-hover align-middle mb-0 small">
+            <thead>
+              <tr class="text-muted">
+                <th>Name / Email</th>
+                <th>Role</th>
+                <th>Status</th>
+                <th>Joined</th>
+              </tr>
+            </thead>
+            <tbody>
+              {% for u in recent_users %}
+                <tr>
+                  <td>
+                    <div class="fw-bold text-dark">{{ u.name }}</div>
+                    <div class="text-muted">{{ u.email }}</div>
+                  </td>
+                  <td>
+                    <span class="badge {% if u.role == 'admin' %}bg-danger{% elif u.role == 'employer' %}bg-primary{% else %}bg-success{% endif %}">
+                      {{ u.role }}
+                    </span>
+                  </td>
+                  <td>
+                    {% if u.is_active %}
+                      <span class="badge bg-success-subtle text-success">Active</span>
+                    {% else %}
+                      <span class="badge bg-danger-subtle text-danger">Inactive</span>
+                    {% endif %}
+                  </td>
+                  <td class="text-muted">{{ u.created_at.strftime('%b %d') }}</td>
+                </tr>
+              {% endfor %}
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+
+    <!-- Recent Jobs Posted -->
+    <div class="col-lg-6">
+      <div class="card border-0 shadow-sm rounded-3 p-4 bg-white h-100">
+        <div class="d-flex justify-content-between align-items-center mb-3 pb-2 border-bottom">
+          <h5 class="fw-bold mb-0">Recently Posted Jobs</h5>
+          <a href="{{ url_for('admin.jobs') }}" class="btn btn-sm btn-outline-primary">Manage Jobs</a>
+        </div>
+        <div class="table-responsive">
+          <table class="table table-hover align-middle mb-0 small">
+            <thead>
+              <tr class="text-muted">
+                <th>Job & Company</th>
+                <th>Location</th>
+                <th>Status</th>
+                <th>Date</th>
+              </tr>
+            </thead>
+            <tbody>
+              {% for j in recent_jobs %}
+                <tr>
+                  <td>
+                    <a href="{{ url_for('jobs.job_detail', job_id=j.id) }}" class="fw-bold text-dark text-decoration-none d-block">
+                      {{ j.title }}
+                    </a>
+                    <span class="text-muted">{{ j.company }}</span>
+                  </td>
+                  <td>{{ j.location }}</td>
+                  <td>
+                    {% if j.is_active %}
+                      <span class="badge bg-success">Active</span>
+                    {% else %}
+                      <span class="badge bg-secondary">Inactive</span>
+                    {% endif %}
+                  </td>
+                  <td class="text-muted">{{ j.created_at.strftime('%b %d') }}</td>
+                </tr>
+              {% endfor %}
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}

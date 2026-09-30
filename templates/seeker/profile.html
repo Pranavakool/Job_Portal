@@ -1,0 +1,126 @@
+{% extends "base.html" %}
+
+{% block title %}My Profile | JobPortal{% endblock %}
+
+{% block content %}
+<div class="bg-white border-bottom py-4 mb-4">
+  <div class="container">
+    <h1 class="h3 fw-bold mb-1">Manage Candidate Profile</h1>
+    <p class="text-muted small mb-0">Keep your professional credentials updated to attract top recruiters.</p>
+  </div>
+</div>
+
+<div class="container pb-5">
+  <div class="row g-4">
+    <!-- Left Column: Edit Form -->
+    <div class="col-lg-8">
+      <div class="form-card shadow-sm p-4">
+        <h5 class="fw-bold mb-4 pb-2 border-bottom"><i class="bi bi-person-lines-fill text-primary me-2"></i>Personal & Professional Details</h5>
+        
+        <form method="POST" action="{{ url_for('seeker.profile') }}">
+          <!-- Name & Email -->
+          <div class="row g-3 mb-3">
+            <div class="col-md-6">
+              <label class="form-label" for="name">Full Name <span class="text-danger">*</span></label>
+              <input type="text" class="form-control" id="name" name="name" value="{{ current_user.name }}" required>
+            </div>
+            <div class="col-md-6">
+              <label class="form-label" for="email">Email Address</label>
+              <input type="email" class="form-control" id="email" value="{{ current_user.email }}" readonly disabled>
+              <div class="form-text small">Account email cannot be modified.</div>
+            </div>
+          </div>
+
+          <!-- Phone & Location -->
+          <div class="row g-3 mb-3">
+            <div class="col-md-6">
+              <label class="form-label" for="phone">Phone Number</label>
+              <input type="text" class="form-control" id="phone" name="phone" value="{{ profile.phone or '' }}" placeholder="+91 98765 43210">
+            </div>
+            <div class="col-md-6">
+              <label class="form-label" for="location">Current Location / City</label>
+              <input type="text" class="form-control" id="location" name="location" value="{{ profile.location or '' }}" placeholder="e.g. Pune, Maharashtra">
+            </div>
+          </div>
+
+          <!-- Skills (Comma separated) -->
+          <div class="mb-3">
+            <label class="form-label" for="skills">Key Skills & Technologies</label>
+            <input type="text" class="form-control" id="skills" name="skills" value="{{ profile.skills or '' }}" placeholder="e.g. Python, Flask, Django, PostgreSQL, Docker, AWS">
+            <div class="form-text small">Separate skills with commas (e.g. <code>Python, React, SQL</code>).</div>
+          </div>
+
+          <!-- Bio / Summary -->
+          <div class="mb-3">
+            <label class="form-label" for="bio">Professional Bio / Summary</label>
+            <textarea class="form-control" id="bio" name="bio" rows="3" placeholder="Brief summary of your career focus, strengths, and goals...">{{ profile.bio or '' }}</textarea>
+          </div>
+
+          <!-- Education -->
+          <div class="mb-3">
+            <label class="form-label" for="education">Education & Degrees</label>
+            <textarea class="form-control" id="education" name="education" rows="2" placeholder="e.g. B.Tech in Computer Science, COEP Pune (2020 - 2024)">{{ profile.education or '' }}</textarea>
+          </div>
+
+          <!-- Work Experience -->
+          <div class="mb-4">
+            <label class="form-label" for="experience">Work Experience / Internships</label>
+            <textarea class="form-control" id="experience" name="experience" rows="3" placeholder="e.g. Software Engineer at CloudWave Digital (2024 - Present): Built Flask APIs and optimized queries...">{{ profile.experience or '' }}</textarea>
+          </div>
+
+          <div class="d-flex justify-content-end gap-2">
+            <a href="{{ url_for('seeker.dashboard') }}" class="btn btn-outline-secondary">Cancel</a>
+            <button type="submit" class="btn btn-primary px-4">
+              <i class="bi bi-save me-1"></i> Save Changes
+            </button>
+          </div>
+        </form>
+      </div>
+    </div>
+
+    <!-- Right Column: Profile Live Preview -->
+    <div class="col-lg-4">
+      <div class="card border-0 shadow-sm rounded-3 p-4 bg-white sticky-top" style="top: 80px;">
+        <div class="text-center pb-3 border-bottom mb-3">
+          <div class="company-avatar mx-auto mb-2 fs-3" style="width: 64px; height: 64px;">
+            {{ current_user.name[:1] | upper }}
+          </div>
+          <h5 class="fw-bold mb-0 text-dark">{{ current_user.name }}</h5>
+          <span class="text-muted small"><i class="bi bi-geo-alt me-1"></i>{{ profile.location or 'Location not specified' }}</span>
+        </div>
+
+        <div class="mb-3">
+          <h6 class="fw-bold small text-uppercase text-muted">Skills Overview</h6>
+          <div class="d-flex flex-wrap gap-1">
+            {% if profile.skills_list %}
+              {% for sk in profile.skills_list %}
+                <span class="badge bg-light text-primary border" style="font-size: 0.75rem;">{{ sk }}</span>
+              {% endfor %}
+            {% else %}
+              <span class="text-muted small">No skills listed yet.</span>
+            {% endif %}
+          </div>
+        </div>
+
+        {% if profile.education %}
+          <div class="mb-3">
+            <h6 class="fw-bold small text-uppercase text-muted">Education</h6>
+            <p class="small text-dark mb-0">{{ profile.education }}</p>
+          </div>
+        {% endif %}
+
+        {% if profile.experience %}
+          <div class="mb-3">
+            <h6 class="fw-bold small text-uppercase text-muted">Experience</h6>
+            <p class="small text-dark mb-0">{{ profile.experience }}</p>
+          </div>
+        {% endif %}
+
+        <div class="pt-3 border-top small text-muted">
+          <i class="bi bi-calendar-check me-1"></i> Member since {{ current_user.created_at.strftime('%b %d, %Y') }}
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}

@@ -1,0 +1,123 @@
+{% extends "base.html" %}
+
+{% block title %}Post a New Job | JobPortal{% endblock %}
+
+{% block content %}
+<div class="bg-white border-bottom py-4 mb-4">
+  <div class="container">
+    <nav aria-label="breadcrumb" class="mb-2">
+      <ol class="breadcrumb small mb-0">
+        <li class="breadcrumb-item"><a href="{{ url_for('employer.dashboard') }}" class="text-decoration-none text-muted">Dashboard</a></li>
+        <li class="breadcrumb-item"><a href="{{ url_for('employer.manage_jobs') }}" class="text-decoration-none text-muted">Jobs</a></li>
+        <li class="breadcrumb-item active" aria-current="page">Post Job</li>
+      </ol>
+    </nav>
+    <h1 class="h3 fw-bold mb-1">Create a New Job Listing</h1>
+    <p class="text-muted small mb-0">Publish an opening to connect with qualified applicants across India.</p>
+  </div>
+</div>
+
+<div class="container pb-5">
+  <div class="row justify-content-center">
+    <div class="col-lg-9">
+      <div class="form-card shadow-sm p-4 p-md-5">
+        <h5 class="fw-bold mb-4 pb-2 border-bottom"><i class="bi bi-briefcase-fill text-primary me-2"></i>Job Specifications</h5>
+
+        <form method="POST" action="{{ url_for('employer.create_job') }}">
+          <!-- Job Title & Company -->
+          <div class="row g-3 mb-3">
+            <div class="col-md-7">
+              <label class="form-label" for="title">Job Title <span class="text-danger">*</span></label>
+              <input type="text" class="form-control" id="title" name="title" value="{{ form_data.get('title', '') }}" placeholder="e.g. Senior Python Backend Engineer" required>
+            </div>
+            <div class="col-md-5">
+              <label class="form-label" for="company">Hiring Company <span class="text-danger">*</span></label>
+              <input type="text" class="form-control" id="company" name="company" value="{{ form_data.get('company', default_company) }}" required>
+            </div>
+          </div>
+
+          <!-- Category & Location -->
+          <div class="row g-3 mb-3">
+            <div class="col-md-6">
+              <label class="form-label" for="category">Category / Industry <span class="text-danger">*</span></label>
+              <select class="form-select" id="category" name="category" required>
+                <option value="" disabled {% if not form_data.get('category') %}selected{% endif %}>Select a Category</option>
+                {% for cat in categories %}
+                  <option value="{{ cat }}" {% if form_data.get('category') == cat %}selected{% endif %}>{{ cat }}</option>
+                {% endfor %}
+              </select>
+            </div>
+            <div class="col-md-6">
+              <label class="form-label" for="location">Job Location / City <span class="text-danger">*</span></label>
+              <input type="text" class="form-control" id="location" name="location" value="{{ form_data.get('location', '') }}" placeholder="e.g. Pune, Bengaluru, Remote" list="locationsList" required>
+              <datalist id="locationsList">
+                {% for loc in locations %}
+                  <option value="{{ loc }}">
+                {% endfor %}
+              </datalist>
+            </div>
+          </div>
+
+          <!-- Job Type & Experience Level -->
+          <div class="row g-3 mb-3">
+            <div class="col-md-6">
+              <label class="form-label" for="job_type">Job Type <span class="text-danger">*</span></label>
+              <select class="form-select" id="job_type" name="job_type" required>
+                {% for jt in job_types %}
+                  <option value="{{ jt }}" {% if form_data.get('job_type') == jt %}selected{% endif %}>{{ jt }}</option>
+                {% endfor %}
+              </select>
+            </div>
+            <div class="col-md-6">
+              <label class="form-label" for="experience_level">Experience Level <span class="text-danger">*</span></label>
+              <select class="form-select" id="experience_level" name="experience_level" required>
+                {% for el in experience_levels %}
+                  <option value="{{ el }}" {% if form_data.get('experience_level') == el %}selected{% endif %}>{{ el }}</option>
+                {% endfor %}
+              </select>
+            </div>
+          </div>
+
+          <!-- Salary Range -->
+          <div class="row g-3 mb-3">
+            <div class="col-md-6">
+              <label class="form-label" for="salary_min">Minimum Salary (₹ / yr)</label>
+              <input type="number" class="form-control" id="salary_min" name="salary_min" value="{{ form_data.get('salary_min', '') }}" placeholder="e.g. 800000" step="50000">
+            </div>
+            <div class="col-md-6">
+              <label class="form-label" for="salary_max">Maximum Salary (₹ / yr)</label>
+              <input type="number" class="form-control" id="salary_max" name="salary_max" value="{{ form_data.get('salary_max', '') }}" placeholder="e.g. 1500000" step="50000">
+            </div>
+          </div>
+
+          <!-- Skills & Application Deadline -->
+          <div class="row g-3 mb-3">
+            <div class="col-md-8">
+              <label class="form-label" for="skills">Required Skills (Comma separated)</label>
+              <input type="text" class="form-control" id="skills" name="skills" value="{{ form_data.get('skills', '') }}" placeholder="e.g. Python, Flask, Docker, PostgreSQL">
+            </div>
+            <div class="col-md-4">
+              <label class="form-label" for="deadline">Application Deadline</label>
+              <input type="date" class="form-control" id="deadline" name="deadline" value="{{ form_data.get('deadline', '') }}">
+            </div>
+          </div>
+
+          <!-- Job Description -->
+          <div class="mb-4">
+            <label class="form-label" for="description">Detailed Job Description & Requirements <span class="text-danger">*</span></label>
+            <textarea class="form-control" id="description" name="description" rows="7" placeholder="Outline the day-to-day responsibilities, qualifications, stack details, and interview process..." required>{{ form_data.get('description', '') }}</textarea>
+            <div class="form-text small">Minimum 20 characters required.</div>
+          </div>
+
+          <div class="d-flex justify-content-end gap-2 pt-3 border-top">
+            <a href="{{ url_for('employer.manage_jobs') }}" class="btn btn-outline-secondary">Cancel</a>
+            <button type="submit" class="btn btn-primary px-4">
+              <i class="bi bi-cloud-arrow-up-fill me-1"></i> Publish Job Listing
+            </button>
+          </div>
+        </form>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}

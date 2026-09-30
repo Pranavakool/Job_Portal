@@ -1,0 +1,43 @@
+{% extends "base.html" %}
+
+{% block title %}403 - Access Forbidden | JobPortal{% endblock %}
+
+{% block content %}
+<div class="container py-5 text-center my-auto">
+  <div class="row justify-content-center py-5">
+    <div class="col-lg-6 col-md-8">
+      <div class="mb-4 text-warning">
+        <i class="bi bi-shield-lock-fill display-1"></i>
+      </div>
+      <h2 class="fw-bold mb-3">403 - Access Forbidden</h2>
+      <p class="text-muted mb-4 lead">
+        {{ message or "You do not have authorization to view or manage this resource. Please make sure you are logged in with the correct role (Job Seeker, Employer, or Admin)." }}
+      </p>
+      <div class="d-flex justify-content-center gap-3">
+        <a href="{{ url_for('jobs.index') }}" class="btn btn-primary px-4 py-2">
+          <i class="bi bi-house-door-fill me-1"></i> Return Home
+        </a>
+        {% if current_user.is_authenticated %}
+          {% if current_user.is_seeker %}
+            <a href="{{ url_for('seeker.dashboard') }}" class="btn btn-outline-secondary px-4 py-2">
+              <i class="bi bi-speedometer2 me-1"></i> Seeker Dashboard
+            </a>
+          {% elif current_user.is_employer %}
+            <a href="{{ url_for('employer.dashboard') }}" class="btn btn-outline-secondary px-4 py-2">
+              <i class="bi bi-speedometer2 me-1"></i> Employer Dashboard
+            </a>
+          {% elif current_user.is_admin %}
+            <a href="{{ url_for('admin.dashboard') }}" class="btn btn-outline-secondary px-4 py-2">
+              <i class="bi bi-shield-check me-1"></i> Admin Console
+            </a>
+          {% endif %}
+        {% else %}
+          <a href="{{ url_for('auth.login') }}" class="btn btn-outline-secondary px-4 py-2">
+            <i class="bi bi-box-arrow-in-right me-1"></i> Log In
+          </a>
+        {% endif %}
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}

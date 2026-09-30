@@ -1,0 +1,57 @@
+{% extends "base.html" %}
+
+{% block title %}Company Profile | JobPortal{% endblock %}
+
+{% block content %}
+<div class="bg-white border-bottom py-4 mb-4">
+  <div class="container">
+    <h1 class="h3 fw-bold mb-1">Company Profile</h1>
+    <p class="text-muted small mb-0">Build an attractive employer brand for job seekers.</p>
+  </div>
+</div>
+
+<div class="container pb-5">
+  <div class="row justify-content-center">
+    <div class="col-lg-8">
+      <div class="form-card shadow-sm p-4 p-md-5">
+        <h5 class="fw-bold mb-4 pb-2 border-bottom"><i class="bi bi-building text-primary me-2"></i>Organization Information</h5>
+
+        <form method="POST" action="{{ url_for('employer.profile') }}">
+          <div class="mb-3">
+            <label class="form-label" for="company_name">Company / Organization Name <span class="text-danger">*</span></label>
+            <input type="text" class="form-control" id="company_name" name="company_name" value="{{ profile.company_name or current_user.name }}" required>
+          </div>
+
+          <div class="row g-3 mb-3">
+            <div class="col-md-6">
+              <label class="form-label" for="company_website">Company Website URL</label>
+              <input type="url" class="form-control" id="company_website" name="company_website" value="{{ profile.company_website or '' }}" placeholder="https://example.com">
+            </div>
+            <div class="col-md-6">
+              <label class="form-label" for="location">Headquarters / City</label>
+              <input type="text" class="form-control" id="location" name="location" value="{{ profile.location or '' }}" placeholder="e.g. Bengaluru, Karnataka">
+            </div>
+          </div>
+
+          <div class="mb-3">
+            <label class="form-label" for="phone">Contact Phone</label>
+            <input type="text" class="form-control" id="phone" name="phone" value="{{ profile.phone or '' }}" placeholder="+91 80 1234 5678">
+          </div>
+
+          <div class="mb-4">
+            <label class="form-label" for="bio">Company Overview & Culture</label>
+            <textarea class="form-control" id="bio" name="bio" rows="4" placeholder="Tell candidates about your company mission, tech stack, employee benefits, and culture...">{{ profile.bio or '' }}</textarea>
+          </div>
+
+          <div class="d-flex justify-content-end gap-2">
+            <a href="{{ url_for('employer.dashboard') }}" class="btn btn-outline-secondary">Cancel</a>
+            <button type="submit" class="btn btn-primary px-4">
+              <i class="bi bi-save me-1"></i> Update Company Profile
+            </button>
+          </div>
+        </form>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}

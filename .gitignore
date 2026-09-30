@@ -1,0 +1,33 @@
+# Virtual environment
+venv/
+env/
+ENV/
+.venv/
+
+# Environment secrets
+.env
+.env.local
+
+# Python cache files
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.pytest_cache/
+
+# SQLite databases & instance folder
+instance/
+*.db
+*.sqlite
+*.sqlite3
+
+# Uploaded candidate resumes (keep directory structure with .gitkeep)
+uploads/resumes/*
+!uploads/resumes/.gitkeep
+
+# IDE and OS files
+.vscode/
+.idea/
+.DS_Store
+Thumbs.db
+*.log

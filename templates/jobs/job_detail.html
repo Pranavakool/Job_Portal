@@ -1,0 +1,295 @@
+{% extends "base.html" %}
+
+{% block title %}{{ job.title }} at {{ job.company }} | JobPortal{% endblock %}
+
+{% block content %}
+<!-- Header Bar -->
+<div class="bg-white border-bottom py-4">
+  <div class="container">
+    <nav aria-label="breadcrumb" class="mb-3">
+      <ol class="breadcrumb small mb-0">
+        <li class="breadcrumb-item"><a href="{{ url_for('jobs.index') }}" class="text-decoration-none text-muted">Home</a></li>
+        <li class="breadcrumb-item"><a href="{{ url_for('jobs.list_jobs') }}" class="text-decoration-none text-muted">Jobs</a></li>
+        <li class="breadcrumb-item"><a href="{{ url_for('jobs.list_jobs', category=job.category) }}" class="text-decoration-none text-muted">{{ job.category }}</a></li>
+        <li class="breadcrumb-item active" aria-current="page">{{ job.title }}</li>
+      </ol>
+    </nav>
+
+    <div class="row align-items-center g-4">
+      <div class="col-lg-8">
+        <div class="d-flex align-items-center gap-3">
+          <div class="company-avatar fs-3" style="width: 64px; height: 64px;">
+            {{ job.company[:1] | upper }}
+          </div>
+          <div>
+            <div class="d-flex align-items-center gap-2 flex-wrap">
+              <h1 class="h3 fw-bold mb-0 text-dark">{{ job.title }}</h1>
+              {% if not job.is_active %}
+                <span class="badge bg-secondary">Inactive / Closed</span>
+              {% else %}
+                <span class="badge bg-success">Active Opening</span>
+              {% endif %}
+            </div>
+            <div class="d-flex flex-wrap align-items-center gap-3 text-muted small mt-2">
+              <span class="fw-semibold text-primary"><i class="bi bi-building me-1"></i>{{ job.company }}</span>
+              <span><i class="bi bi-geo-alt me-1"></i>{{ job.location }}</span>
+              <span><i class="bi bi-clock me-1"></i>{{ job.job_type }}</span>
+              <span><i class="bi bi-calendar3 me-1"></i>Posted {{ job.created_at.strftime('%b %d, %Y') }}</span>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Action Buttons Right -->
+      <div class="col-lg-4 text-lg-end">
+        {% if current_user.is_authenticated and current_user.is_seeker %}
+          {% if existing_application %}
+            <div class="p-2 border rounded-3 bg-light text-start text-lg-end d-inline-block">
+              <div class="small text-muted mb-1"><i class="bi bi-check2-circle text-success me-1"></i> You have already applied for this job</div>
+              <span class="badge {{ existing_application.badge_class }} px-3 py-1 fs-6">
+                Status: {{ existing_application.status }}
+              </span>
+            </div>
+          {% elif job.is_active %}
+            <button type="button" class="btn btn-primary px-4 py-2 fs-6 shadow-sm" data-bs-toggle="modal" data-bs-target="#applyModal">
+              <i class="bi bi-send-fill me-1"></i> Apply for this Job
+            </button>
+          {% else %}
+            <button class="btn btn-secondary px-4 py-2" disabled>Applications Closed</button>
+          {% endif %}
+        {% elif current_user.is_authenticated and current_user.id == job.employer_id %}
+          <!-- Owner Employer Actions -->
+          <div class="d-flex flex-wrap gap-2 justify-content-lg-end">
+            <a href="{{ url_for('employer.applicants', job_id=job.id) }}" class="btn btn-primary btn-sm">
+              <i class="bi bi-people-fill me-1"></i> View Applicants ({{ job.application_count }})
+            </a>
+            <a href="{{ url_for('employer.edit_job', job_id=job.id) }}" class="btn btn-outline-secondary btn-sm">
+              <i class="bi bi-pencil-square me-1"></i> Edit
+            </a>
+          </div>
+        {% elif current_user.is_authenticated and current_user.is_admin %}
+          <div class="d-flex flex-wrap gap-2 justify-content-lg-end">
+            <span class="badge bg-danger p-2">Admin View</span>
+            <form action="{{ url_for('admin.delete_job', job_id=job.id) }}" method="POST" onsubmit="return confirm('Permanently remove this job listing?');" class="d-inline">
+              <button type="submit" class="btn btn-outline-danger btn-sm">Delete Job</button>
+            </form>
+          </div>
+        {% elif not current_user.is_authenticated %}
+          <a href="{{ url_for('auth.login', next=request.url) }}" class="btn btn-primary px-4 py-2 shadow-sm">
+            <i class="bi bi-box-arrow-in-right me-1"></i> Log In to Apply
+          </a>
+        {% endif %}
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Main Details Container -->
+<div class="container py-4">
+  <div class="row g-4">
+    <!-- Left Column: Details & Description -->
+    <div class="col-lg-8">
+      <!-- Quick Highlights Card -->
+      <div class="card border-0 shadow-sm rounded-3 p-4 mb-4 bg-white">
+        <h5 class="fw-bold mb-3 border-bottom pb-2">Role Overview</h5>
+        <div class="row g-3">
+          <div class="col-sm-6">
+            <div class="d-flex align-items-center gap-2">
+              <div class="badge bg-light text-primary p-2 fs-5"><i class="bi bi-cash-stack"></i></div>
+              <div>
+                <span class="text-muted small d-block">Offered Compensation</span>
+                <span class="fw-bold text-dark">{{ job.salary_display }}</span>
+              </div>
+            </div>
+          </div>
+          <div class="col-sm-6">
+            <div class="d-flex align-items-center gap-2">
+              <div class="badge bg-light text-info p-2 fs-5"><i class="bi bi-laptop"></i></div>
+              <div>
+                <span class="text-muted small d-block">Work Mode / Type</span>
+                <span class="fw-bold text-dark">{{ job.job_type }}</span>
+              </div>
+            </div>
+          </div>
+          <div class="col-sm-6">
+            <div class="d-flex align-items-center gap-2">
+              <div class="badge bg-light text-warning p-2 fs-5"><i class="bi bi-bar-chart-steps"></i></div>
+              <div>
+                <span class="text-muted small d-block">Experience Level</span>
+                <span class="fw-bold text-dark">{{ job.experience_level }}</span>
+              </div>
+            </div>
+          </div>
+          <div class="col-sm-6">
+            <div class="d-flex align-items-center gap-2">
+              <div class="badge bg-light text-danger p-2 fs-5"><i class="bi bi-hourglass-split"></i></div>
+              <div>
+                <span class="text-muted small d-block">Application Deadline</span>
+                <span class="fw-bold text-dark">
+                  {% if job.deadline %}
+                    {{ job.deadline.strftime('%B %d, %Y') }}
+                  {% else %}
+                    Open until filled
+                  {% endif %}
+                </span>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Skills Required -->
+      {% if job.skills_list %}
+        <div class="card border-0 shadow-sm rounded-3 p-4 mb-4 bg-white">
+          <h5 class="fw-bold mb-3 border-bottom pb-2">Key Skills & Proficiencies</h5>
+          <div class="d-flex flex-wrap gap-2">
+            {% for skill in job.skills_list %}
+              <span class="badge bg-light text-primary border px-3 py-2 fs-6 fw-medium">{{ skill }}</span>
+            {% endfor %}
+          </div>
+        </div>
+      {% endif %}
+
+      <!-- Full Job Description -->
+      <div class="card border-0 shadow-sm rounded-3 p-4 mb-4 bg-white">
+        <h5 class="fw-bold mb-3 border-bottom pb-2">Job Description & Responsibilities</h5>
+        <div class="text-dark lh-lg" style="white-space: pre-line;">
+          {{ job.description }}
+        </div>
+      </div>
+
+      <!-- Similar Jobs -->
+      {% if similar_jobs %}
+        <div class="mt-4">
+          <h5 class="fw-bold mb-3">Similar Opportunities in {{ job.category }}</h5>
+          <div class="row g-3">
+            {% for sim in similar_jobs %}
+              <div class="col-md-6">
+                <div class="card border-0 shadow-sm rounded-3 p-3 h-100 bg-white">
+                  <h6 class="fw-bold mb-1">
+                    <a href="{{ url_for('jobs.job_detail', job_id=sim.id) }}" class="text-decoration-none text-dark">{{ sim.title }}</a>
+                  </h6>
+                  <span class="text-muted small mb-2 d-block">{{ sim.company }} &bull; {{ sim.location }}</span>
+                  <div class="d-flex justify-content-between align-items-center mt-auto pt-2 border-top">
+                    <span class="small fw-bold text-success">{{ sim.salary_display }}</span>
+                    <a href="{{ url_for('jobs.job_detail', job_id=sim.id) }}" class="btn btn-sm btn-outline-primary py-0">View</a>
+                  </div>
+                </div>
+              </div>
+            {% endfor %}
+          </div>
+        </div>
+      {% endif %}
+    </div>
+
+    <!-- Right Column: Company Info Card -->
+    <div class="col-lg-4">
+      <div class="card border-0 shadow-sm rounded-3 p-4 bg-white mb-4">
+        <h5 class="fw-bold mb-3 border-bottom pb-2">About the Employer</h5>
+        <div class="d-flex align-items-center gap-3 mb-3">
+          <div class="company-avatar fs-4">
+            {{ job.company[:1] | upper }}
+          </div>
+          <div>
+            <h6 class="fw-bold mb-0">{{ job.company }}</h6>
+            <span class="text-muted small">{{ job.employer.profile.location or job.location }}</span>
+          </div>
+        </div>
+
+        {% if job.employer.profile and job.employer.profile.bio %}
+          <p class="text-muted small mb-3">
+            {{ job.employer.profile.bio }}
+          </p>
+        {% endif %}
+
+        {% if job.employer.profile and job.employer.profile.company_website %}
+          <div class="mb-3">
+            <a href="{{ job.employer.profile.company_website }}" target="_blank" rel="noopener noreferrer" class="btn btn-sm btn-outline-secondary w-100">
+              <i class="bi bi-box-arrow-up-right me-1"></i> Visit Company Website
+            </a>
+          </div>
+        {% endif %}
+
+        <div class="pt-3 border-top small text-muted">
+          <div class="d-flex justify-content-between mb-1">
+            <span>Posted Roles:</span>
+            <span class="fw-bold text-dark">{{ job.employer.jobs | length }} jobs</span>
+          </div>
+          <div class="d-flex justify-content-between">
+            <span>Member Since:</span>
+            <span class="fw-bold text-dark">{{ job.employer.created_at.strftime('%B %Y') }}</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Safety & Application Tips -->
+      <div class="card border-0 shadow-sm rounded-3 p-3 bg-light">
+        <h6 class="fw-bold mb-2 text-dark"><i class="bi bi-shield-check text-primary me-1"></i> Safe Job Hunting</h6>
+        <p class="small text-muted mb-0">
+          JobPortal strictly monitors legitimate employment listings. Never transfer funds or share sensitive banking passwords during job recruitment.
+        </p>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Apply Now Modal (For Job Seekers) -->
+{% if current_user.is_authenticated and current_user.is_seeker and not existing_application and job.is_active %}
+<div class="modal fade" id="applyModal" tabindex="-1" aria-labelledby="applyModalLabel" aria-hidden="true">
+  <div class="modal-dialog modal-dialog-centered modal-lg">
+    <div class="modal-content border-0 shadow-lg rounded-4">
+      <div class="modal-header border-bottom py-3">
+        <h5 class="modal-title fw-bold" id="applyModalLabel">
+          <i class="bi bi-send-fill text-primary me-2"></i>Apply for {{ job.title }}
+        </h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+      </div>
+      <form action="{{ url_for('jobs.apply_job', job_id=job.id) }}" method="POST" enctype="multipart/form-data">
+        <div class="modal-body p-4">
+          <div class="alert alert-info py-2 small d-flex align-items-center mb-3">
+            <i class="bi bi-info-circle-fill me-2 fs-5"></i>
+            <div>Applying to <strong>{{ job.company }}</strong> for <strong>{{ job.title }}</strong></div>
+          </div>
+
+          <!-- Applicant Name & Email (Pre-filled) -->
+          <div class="row g-3 mb-3">
+            <div class="col-md-6">
+              <label class="form-label small fw-semibold">Applicant Name</label>
+              <input type="text" class="form-control" value="{{ current_user.name }}" readonly disabled>
+            </div>
+            <div class="col-md-6">
+              <label class="form-label small fw-semibold">Applicant Email</label>
+              <input type="text" class="form-control" value="{{ current_user.email }}" readonly disabled>
+            </div>
+          </div>
+
+          <!-- Resume Upload -->
+          <div class="mb-3">
+            <label class="form-label small fw-semibold" for="resume">
+              Upload Resume / CV <span class="text-danger">*</span>
+            </label>
+            <input type="file" class="form-control" id="resume" name="resume" accept=".pdf,.doc,.docx" required>
+            <div class="form-text small text-muted">
+              Supported formats: <strong>PDF, DOC, DOCX</strong> (Max size: 16 MB).
+            </div>
+          </div>
+
+          <!-- Cover Letter -->
+          <div class="mb-3">
+            <label class="form-label small fw-semibold" for="cover_letter">Cover Letter / Note to Employer (Optional)</label>
+            <textarea class="form-control" id="cover_letter" name="cover_letter" rows="4" placeholder="Introduce yourself, your relevant background, and why you are a great fit for this position..."></textarea>
+          </div>
+        </div>
+
+        <div class="modal-footer border-top py-3">
+          <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">Cancel</button>
+          <button type="submit" class="btn btn-primary px-4">
+            <i class="bi bi-check2-circle me-1"></i> Submit Application
+          </button>
+        </div>
+      </form>
+    </div>
+  </div>
+</div>
+{% endif %}
+{% endblock %}

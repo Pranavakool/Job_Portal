@@ -1,0 +1,165 @@
+{% extends "base.html" %}
+
+{% block title %}Manage Jobs | JobPortal{% endblock %}
+
+{% block content %}
+<div class="bg-white border-bottom py-4 mb-4">
+  <div class="container">
+    <div class="d-flex flex-column flex-md-row justify-content-between align-items-md-center gap-3">
+      <div>
+        <h1 class="h3 fw-bold mb-1">Manage Posted Jobs</h1>
+        <p class="text-muted small mb-0">Oversee active listings, monitor candidate counts, and update statuses.</p>
+      </div>
+      <a href="{{ url_for('employer.create_job') }}" class="btn btn-primary btn-sm px-3 shadow-sm">
+        <i class="bi bi-plus-circle-fill me-1"></i> Post New Job
+      </a>
+    </div>
+  </div>
+</div>
+
+<div class="container pb-5">
+  <!-- Filter Controls -->
+  <div class="d-flex flex-wrap justify-content-between align-items-center gap-2 mb-3">
+    <div class="btn-group btn-group-sm" role="group">
+      <a href="{{ url_for('employer.manage_jobs') }}" class="btn {% if not status_filter %}btn-primary{% else %}btn-outline-secondary{% endif %}">
+        All Jobs
+      </a>
+      <a href="{{ url_for('employer.manage_jobs', status='active') }}" class="btn {% if status_filter == 'active' %}btn-primary{% else %}btn-outline-secondary{% endif %}">
+        Active Listings
+      </a>
+      <a href="{{ url_for('employer.manage_jobs', status='inactive') }}" class="btn {% if status_filter == 'inactive' %}btn-primary{% else %}btn-outline-secondary{% endif %}">
+        Inactive Listings
+      </a>
+    </div>
+    <span class="text-muted small">Showing {{ jobs | length }} job records</span>
+  </div>
+
+  <div class="card border-0 shadow-sm rounded-3 p-4 bg-white">
+    {% if jobs %}
+      <div class="table-responsive">
+        <table class="table table-hover align-middle mb-0">
+          <thead class="table-light small text-uppercase text-muted">
+            <tr>
+              <th>Job Title</th>
+              <th>Location & Type</th>
+              <th>Posted Date</th>
+              <th>Status</th>
+              <th>Applicants</th>
+              <th class="text-end">Actions</th>
+            </tr>
+          </thead>
+          <tbody>
+            {% for job in jobs %}
+              <tr>
+                <td>
+                  <a href="{{ url_for('jobs.job_detail', job_id=job.id) }}" class="fw-bold text-decoration-none text-dark d-block">
+                    {{ job.title }}
+                  </a>
+                  <span class="text-muted small">{{ job.category }}</span>
+                </td>
+                <td>
+                  <div class="small text-dark">{{ job.location }}</div>
+                  <span class="badge bg-light text-secondary border" style="font-size: 0.75rem;">{{ job.job_type }}</span>
+                </td>
+                <td class="small text-muted">{{ job.created_at.strftime('%b %d, %Y') }}</td>
+                <td>
+                  {% if job.is_active %}
+                    <span class="badge bg-success">Active</span>
+                  {% else %}
+                    <span class="badge bg-secondary">Inactive</span>
+                  {% endif %}
+                </td>
+                <td>
+                  <a href="{{ url_for('employer.applicants', job_id=job.id) }}" class="btn btn-sm btn-outline-info text-dark py-1 px-2">
+                    <i class="bi bi-people-fill text-primary me-1"></i> {{ job.application_count }} Applicants
+                  </a>
+                </td>
+                <td class="text-end">
+                  <div class="d-inline-flex align-items-center gap-1">
+                    <!-- Toggle Status -->
+                    <form action="{{ url_for('employer.toggle_job_status', job_id=job.id) }}" method="POST" class="d-inline">
+                      <button type="submit" class="btn btn-sm btn-light border py-1" title="Toggle Active/Inactive">
+                        <i class="bi {% if job.is_active %}bi-pause-fill text-warning{% else %}bi-play-fill text-success{% endif %}"></i>
+                      </button>
+                    </form>
+
+                    <!-- Edit -->
+                    <a href="{{ url_for('employer.edit_job', job_id=job.id) }}" class="btn btn-sm btn-light border py-1" title="Edit Job">
+                      <i class="bi bi-pencil-fill text-primary"></i>
+                    </a>
+
+                    <!-- Delete with modal confirmation -->
+                    <button type="button" class="btn btn-sm btn-light border py-1" data-bs-toggle="modal" data-bs-target="#deleteJobModal{{ job.id }}" title="Delete Job">
+                      <i class="bi bi-trash-fill text-danger"></i>
+                    </button>
+
+                    <!-- Delete Confirmation Modal -->
+                    <div class="modal fade" id="deleteJobModal{{ job.id }}" tabindex="-1" aria-hidden="true">
+                      <div class="modal-dialog modal-dialog-centered">
+                        <div class="modal-content border-0 shadow">
+                          <div class="modal-header">
+                            <h5 class="modal-title fw-bold text-danger">
+                              <i class="bi bi-exclamation-triangle-fill me-2"></i>Confirm Job Deletion
+                            </h5>
+                            <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                          </div>
+                          <div class="modal-body text-start">
+                            Are you sure you want to permanently delete the job <strong>"{{ job.title }}"</strong>?
+                            <p class="small text-muted mt-2 mb-0">This will also permanently delete all {{ job.application_count }} candidate applications submitted for this job.</p>
+                          </div>
+                          <div class="modal-footer">
+                            <button type="button" class="btn btn-sm btn-outline-secondary" data-bs-dismiss="modal">Cancel</button>
+                            <form action="{{ url_for('employer.delete_job', job_id=job.id) }}" method="POST">
+                              <button type="submit" class="btn btn-sm btn-danger px-3">Yes, Delete Job</button>
+                            </form>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+
+                  </div>
+                </td>
+              </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+
+      <!-- Pagination -->
+      {% if pagination.pages > 1 %}
+        <nav aria-label="Jobs pagination" class="mt-4">
+          <ul class="pagination justify-content-center mb-0">
+            <li class="page-item {% if not pagination.has_prev %}disabled{% endif %}">
+              <a class="page-link" href="{{ url_for('employer.manage_jobs', page=pagination.prev_num, status=status_filter) }}">&laquo; Previous</a>
+            </li>
+            {% for p in pagination.iter_pages(left_edge=1, right_edge=1, left_current=2, right_current=2) %}
+              {% if p %}
+                <li class="page-item {% if p == pagination.page %}active{% endif %}">
+                  <a class="page-link" href="{{ url_for('employer.manage_jobs', page=p, status=status_filter) }}">{{ p }}</a>
+                </li>
+              {% else %}
+                <li class="page-item disabled"><span class="page-link">&hellip;</span></li>
+              {% endif %}
+            {% endfor %}
+            <li class="page-item {% if not pagination.has_next %}disabled{% endif %}">
+              <a class="page-link" href="{{ url_for('employer.manage_jobs', page=pagination.next_num, status=status_filter) }}">Next &raquo;</a>
+            </li>
+          </ul>
+        </nav>
+      {% endif %}
+
+    {% else %}
+      <div class="empty-state">
+        <div class="empty-state-icon text-muted">
+          <i class="bi bi-briefcase"></i>
+        </div>
+        <h5 class="fw-bold mb-2">No jobs found</h5>
+        <p class="text-muted small mb-4">You have not posted any jobs matching this criteria yet.</p>
+        <a href="{{ url_for('employer.create_job') }}" class="btn btn-primary px-4">
+          <i class="bi bi-plus-circle me-1"></i> Post Your First Job
+        </a>
+      </div>
+    {% endif %}
+  </div>
+</div>
+{% endblock %}
